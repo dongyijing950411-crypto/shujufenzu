@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用数学之尺，量地理之线</title>
+    <style>
+        /* 全局基础重置 */
+        * { box-sizing: border-box; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; 
+            background-color: #f4f8fb; overflow: hidden; 
+        }
+
+        /* 页面容器与过渡动画 */
+        .page { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            display: none; flex-direction: column; align-items: center; justify-content: center; 
+            opacity: 0; transition: opacity 0.5s ease; 
+        }
+        .page.active { display: flex; opacity: 1; z-index: 10;}
+
+        /* 第一页：封面欢迎页 (浅蓝色调，适合初中生) */
+        #landing { 
+            background: linear-gradient(135deg, #e0f7fa 0%, #bbdefb 100%); 
+            text-align: center; 
+        }
+        #landing h1 { 
+            font-size: 4.5rem; margin-bottom: 10px; letter-spacing: 2px;
+            color: #0277bd; 
+            text-shadow: 2px 4px 8px rgba(2, 119, 189, 0.15); 
+        }
+        #landing h3 { 
+            font-size: 2.2rem; font-weight: 300; margin-bottom: 60px; color: #039be5; 
+        }
+        .start-btn { 
+            padding: 18px 60px; font-size: 1.8rem; color: #ffffff; 
+            background: #29b6f6; border: none; border-radius: 50px; 
+            cursor: pointer; font-weight: bold; letter-spacing: 2px;
+            box-shadow: 0 10px 20px rgba(41, 182, 246, 0.3); 
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s; 
+        }
+        .start-btn:hover { 
+            transform: translateY(-5px) scale(1.02); 
+            box-shadow: 0 15px 25px rgba(41, 182, 246, 0.4); 
+            background: #03a9f4;
+        }
+
+        /* 第二页：实验模块选择菜单 */
+        #menu { background: #f0f4f8; }
+        .menu-title { font-size: 2.5rem; color: #455a64; margin-bottom: 50px; font-weight: bold;}
+        .cards-container { display: flex; gap: 40px; }
+        .menu-card { 
+            background: white; width: 320px; padding: 50px 20px; 
+            border-radius: 24px; text-align: center; cursor: pointer; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04); transition: all 0.3s; 
+            border-bottom: 8px solid #eceff1; display: flex; flex-direction: column; align-items: center;
+        }
+        .menu-card:hover { 
+            transform: translateY(-12px); 
+            box-shadow: 0 15px 30px rgba(0,0,0,0.08); 
+        }
+        .menu-card.c1:hover { border-bottom-color: #4fc3f7; }
+        .menu-card.c2:hover { border-bottom-color: #81c784; }
+        .menu-card.c3:hover { border-bottom-color: #ba68c8; }
+        
+        .card-icon { font-size: 5rem; margin-bottom: 25px; }
+        .card-title { font-size: 1.6rem; font-weight: bold; color: #37474f; line-height: 1.4;}
+        .card-subtitle { font-size: 1.1rem; color: #90a4ae; font-weight: normal; margin-top: 10px;}
+
+        /* 第三页：沙箱视窗 */
+        #viewer { 
+            display: none; flex-direction: column; width: 100%; height: 100%; 
+            background: #fff; opacity: 0; transition: opacity 0.5s ease; 
+        }
+        #viewer.active { display: flex; opacity: 1; }
+        
+        /* === 优化后的毛玻璃拟态顶栏 === */
+        .viewer-header { 
+            height: 64px; 
+            background: rgba(255, 255, 255, 0.85); /* 半透明白色 */
+            backdrop-filter: blur(10px); /* 毛玻璃模糊特效 */
+            -webkit-backdrop-filter: blur(10px);
+            color: #0277bd; /* 字体改回主题蓝 */
+            display: flex; align-items: center; padding: 0 30px; 
+            justify-content: space-between; 
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04); /* 极淡的阴影 */
+            z-index: 10;
+            border-bottom: 1px solid #e1e8ed; /* 轻盈的分割线 */
+        }
+        .viewer-header h2 { margin: 0; font-size: 1.25rem; font-weight: bold; letter-spacing: 1px;}
+        
+        /* === 优化后的轻量化返回按钮 === */
+        .back-btn { 
+            background: #ffffff; color: #0288d1; border: 1px solid #81d4fa; 
+            padding: 8px 22px; border-radius: 50px; cursor: pointer; font-size: 0.95rem; 
+            font-weight: bold; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 2px 6px rgba(2, 136, 209, 0.06);
+        }
+        .back-btn:hover { 
+            background: #e1f5fe; border-color: #29b6f6;
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(2, 136, 209, 0.15); 
+        }
+        
+        iframe { flex: 1; border: none; width: 100%; height: calc(100% - 64px); background: #f4f8fb;}
+    </style>
+</head>
+<body>
+
+    <textarea id="src-app1" style="display:none;">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>探索数据的分布秘密</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        body { font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif; background-color: #f4f8fb; background-image: radial-gradient(#d6eaf8 2px, transparent 2px); background-size: 30px 30px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; padding: 30px 20px; color: #333; }
+        h1 { color: #0277bd; text-shadow: 1px 1px 2px rgba(0,0,0,0.05); font-size: 2.2em; margin-bottom: 20px; }
+        .card { background-color: #ffffff; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04); width: 100%; max-width: 900px; margin-bottom: 30px; box-sizing: border-box; border-top: 6px solid #4fc3f7; }
+        #input-container { text-align: center; }
+        label { font-weight: bold; font-size: 1.2em; color: #455a64; display: block; margin-bottom: 15px; }
+        #file-input { padding: 15px; font-size: 16px; color: #576574; background: #fafafa; border: 2px dashed #b0bec5; border-radius: 12px; cursor: pointer; width: 70%; transition: all 0.3s; }
+        #file-input:hover { border-color: #29b6f6; background: #e1f5fe; }
+        #plot-container { height: 200px; position: relative; overflow: visible; margin-top: 20px; }
+        #number-line { width: 90%; height: 4px; background-color: #78909c; position: absolute; top: 50%; left: 5%; transform: translateY(-50%); border-radius: 2px; }
+        #number-line::after { content: ''; position: absolute; right: -12px; top: -6px; border-left: 16px solid #78909c; border-top: 8px solid transparent; border-bottom: 8px solid transparent; }
+        .tick { width: 2px; height: 16px; background-color: #78909c; position: absolute; top: -6px; transform: translateX(-50%); border-radius: 1px; }
+        .tick-label { position: absolute; top: 20px; transform: translateX(-50%); font-size: 14px; font-weight: bold; color: #546e7a; }
+        #dots-container { width: 90%; height: 100%; position: absolute; top: 0; left: 5%; }
+        .dot { width: 14px; height: 14px; background-color: rgba(41, 182, 246, 0.6); border: 2px solid #0277bd; border-radius: 50%; position: absolute; top: 50%; transform: translate(-50%, -50%); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s; box-sizing: border-box; cursor: pointer; mix-blend-mode: multiply; }
+        .dot:hover { transform: translate(-50%, -50%) scale(2.2); background-color: rgba(255, 167, 38, 0.9); border-color: #ef6c00; z-index: 100; box-shadow: 0 4px 8px rgba(0,0,0,0.15); mix-blend-mode: normal; }
+        #tooltip { position: absolute; background: #37474f; color: white; padding: 8px 12px; border-radius: 8px; font-size: 14px; font-weight: bold; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 200; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transform: translate(-50%, -150%); }
+        #tooltip::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-top: 6px solid #37474f; border-left: 6px solid transparent; border-right: 6px solid transparent; }
+    </style>
+</head>
+<body>
+    <h1>📊 探索数据的秘密：一维散点分布</h1>
+    <div class="card" id="input-container">
+        <label for="file-input">📂 导入数据文件 (.csv, .xlsx 或 .xls)：</label>
+        <input type="file" id="file-input" accept=".csv, .xlsx, .xls">
+        <p style="font-size: 13px; color: #90a4ae; margin-top: 10px;">无论尺度多大或多小，数轴都会自动伸缩以适应你的数据！</p>
+    </div>
+    <div class="card" id="plot-container">
+        <div id="number-line"></div>
+        <div id="dots-container"></div>
+        <div id="tooltip"></div>
+    </div>
+    <script>
+        document.getElementById('file-input').addEventListener('change', handleFile);
+        const tooltip = document.getElementById('tooltip');
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const sheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                const numericData = jsonData.flat().map(Number).filter(n => !isNaN(n) && n !== null && n !== "");
+
+                if (numericData.length === 0) {
+                    alert('数据文件中没有找到有效的数字哦，请检查格式！');
+                    return;
+                }
+                parent.postMessage({ type: 'import_data', module: '数据分析', detail: '导入了数据文件，共' + numericData.length + '条数据' }, '*');
+                plotDots(numericData);
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function getNiceTickSpacing(min, max) {
+            const range = max - min;
+            if (range === 0) return 1; 
+            const targetTickCount = 8; 
+            const roughStep = range / targetTickCount;
+            const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+            const normalizedStep = roughStep / magnitude;
+
+            let niceStep;
+            if (normalizedStep < 1.5) niceStep = 1;
+            else if (normalizedStep < 3.5) niceStep = 2;
+            else if (normalizedStep < 7.5) niceStep = 5;
+            else niceStep = 10;
+
+            return niceStep * magnitude;
+        }
+
+        function plotDots(data) {
+            const dotsContainer = document.getElementById('dots-container');
+            dotsContainer.innerHTML = ''; 
+            const numberLine = document.getElementById('number-line');
+            const existingElements = numberLine.querySelectorAll('.tick, .tick-label');
+            existingElements.forEach(el => el.remove());
+
+            const minVal = Math.min(...data);
+            const maxVal = Math.max(...data);
+            const tickSpacing = getNiceTickSpacing(minVal, maxVal);
+
+            const axisMin = Math.floor(minVal / tickSpacing) * tickSpacing;
+            const axisMax = Math.ceil(maxVal / tickSpacing) * tickSpacing + tickSpacing; 
+
+            const plotContainer = document.getElementById('plot-container');
+            const plotWidth = plotContainer.offsetWidth * 0.9; 
+            const scaleFactor = plotWidth / (axisMax - axisMin);
+
+            for (let i = axisMin; i <= axisMax; i += tickSpacing) {
+                const tick = document.createElement('div');
+                tick.className = 'tick';
+                tick.style.left = (i - axisMin) * scaleFactor + 'px';
+                numberLine.appendChild(tick);
+
+                const tickLabel = document.createElement('div');
+                tickLabel.className = 'tick-label';
+                tickLabel.style.left = (i - axisMin) * scaleFactor + 'px';
+                tickLabel.textContent = parseFloat(i.toPrecision(10));
+                numberLine.appendChild(tickLabel);
+            }
+
+            data.forEach(value => {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                const xPos = (value - axisMin) * scaleFactor;
+                dot.style.left = xPos + 'px';
+                
+                dot.addEventListener('mouseenter', (e) => {
+                    tooltip.textContent = '数据: ' + value; 
+                    tooltip.style.opacity = 1;
+                    const containerRect = plotContainer.getBoundingClientRect();
+                    const dotRect = dot.getBoundingClientRect();
+                    tooltip.style.left = (dotRect.left - containerRect.left + dotRect.width / 2 + plotContainer.offsetWidth * 0.05) + 'px';
+                    tooltip.style.top = (dotRect.top - containerRect.top) + 'px';
+                });
+
+                dot.addEventListener('mouseleave', () => { tooltip.style.opacity = 0; });
+                dotsContainer.appendChild(dot);
+            });
+        }
+    </script>
+</body>
+</html>
+    </textarea>
+
+    <textarea id="src-app2" style="display:none;">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>数据分组与离差可视化实验室</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root { --bg-color: #f4f8fb; --primary: #03a9f4; --group-a: #ffca28; --group-b: #42a5f5; --text-main: #37474f; }
+        body { font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; display: flex; flex-direction: column; align-items: center; }
+        .toolbar { background: white; padding: 15px 30px; border-radius: 50px; display: flex; gap: 15px; align-items: center; margin: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .btn { background: #e1f5fe; color: #0288d1; border: none; padding: 10px 18px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .btn:hover { background: #b3e5fc; transform: scale(1.02); }
+        .btn-confirm { background: var(--primary); color: white; font-size: 1.1rem; padding: 10px 25px; box-shadow: 0 4px 10px rgba(3, 169, 244, 0.3); }
+        .btn-confirm:hover { background: #0288d1; }
+        #visualization { width: 95%; max-width: 1200px; background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; display: none; box-shadow: 0 8px 20px rgba(0,0,0,0.04); position: relative; }
+        .number-line { position: relative; height: 60px; margin: 20px 40px; border-bottom: 3px solid #b0bec5; }
+        .nl-dot { position: absolute; bottom: -8px; width: 16px; height: 16px; border-radius: 50%; transform: translateX(-50%); box-shadow: 0 0 0 2px white, 0 2px 4px rgba(0,0,0,0.2); transition: 0.5s ease-in-out; }
+        .dot-a { background-color: var(--group-a); z-index: 10;}
+        .dot-b { background-color: var(--group-b); z-index: 10;}
+        .nl-label { position: absolute; bottom: -30px; transform: translateX(-50%); font-size: 12px; color: #78909c; font-weight: bold; }
+        #sumBoard { width: 95%; max-width: 1200px; background: #263238; color: white; border-radius: 12px; padding: 15px; margin-bottom: 20px; text-align: center; font-size: 1.2rem; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+        .sum-highlight { color: #ffca28; font-size: 1.5rem; font-weight: bold; margin: 0 10px;}
+        .container { display: flex; width: 95%; max-width: 1200px; gap: 20px; height: 600px; padding-bottom: 40px; }
+        .column { flex: 1; background: white; border-radius: 20px; display: flex; flex-direction: column; box-shadow: 0 8px 20px rgba(0,0,0,0.04); overflow: hidden; }
+        .col-header { padding: 15px; font-weight: bold; text-align: center; }
+        .data-list { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+        .data-item { padding: 8px 15px; background: #fafafa; border-radius: 12px; border: 1px solid #eceff1; display: flex; justify-content: space-between; align-items: center; }
+        .item-btns button { border: none; padding: 5px 10px; border-radius: 8px; cursor: pointer; margin-left: 5px; font-weight:bold; transition: 0.2s; }
+        .btn-to-a { background: #fff8e1; color: #f57f17; }
+        .btn-to-a:hover { background: #ffecb3; }
+        .btn-to-b { background: #e3f2fd; color: #1565c0; }
+        .btn-to-b:hover { background: #bbdefb; }
+        .stats-area { padding: 15px; background: #fafafa; border-top: 1px solid #eceff1; display: flex; flex-direction: column; gap: 8px; }
+        .stats-row { display: flex; gap: 6px; }
+        .stats-row button { flex: 1; padding: 8px 2px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; background: #eceff1; color:#546e7a; transition:0.2s;}
+        .stats-row button:hover { background: #cfd8dc; color:#263238;}
+        .result-box { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+        .stat-card { background: white; border: 2px solid transparent; border-radius: 10px; padding: 8px; text-align: center; font-size: 0.9rem; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: 0.2s; user-select: none; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
+        .stat-card.selected { border-color: #29b6f6; background: #e1f5fe; color: #0277bd; font-weight: bold; }
+    </style>
+</head>
+<body>
+<div class="toolbar">
+    <input type="file" id="fileInput" accept=".csv, .xlsx">
+    <button class="btn" onclick="resetAll()">清空重置</button>
+    <button class="btn btn-confirm" onclick="confirmAndDraw()">确定分组 (生成数轴)</button>
+</div>
+<div id="sumBoard">等待选择同类数值...</div>
+<div id="visualization">
+    <h3 style="margin-top:0; text-align:center; color:#546e7a;">数据分布数轴</h3>
+    <div class="number-line" id="numLine"></div>
+</div>
+<div class="container">
+    <div class="column">
+        <div class="col-header" style="background: #eceff1; color:#455a64;">待分组数据 <button class="btn" style="padding:4px 12px; margin-left:10px; background:#cfd8dc; color:#37474f;" onclick="toggleSort()">排列</button></div>
+        <div id="listPool" class="data-list"></div>
+    </div>
+    <div class="column">
+        <div class="col-header" style="background: #fff8e1; color: #f57f17;">A 组</div>
+        <div id="listA" class="data-list"></div>
+        <div class="stats-area">
+            <div class="stats-row">
+                <button onclick="calcStat('A', 'mean', '平均数')">求平均</button>
+                <button onclick="calcStat('A', 'range', '极差')">求极差</button>
+            </div>
+            <div class="stats-row">
+                <button onclick="calcStat('A', 'variance', '方差')">求方差</button>
+                <button onclick="calcStat('A', 'ss', '离差平方和')">求离差平方和</button>
+            </div>
+            <div class="result-box" id="resA"></div>
+        </div>
+    </div>
+    <div class="column">
+        <div class="col-header" style="background: #e3f2fd; color: #1565c0;">B 组</div>
+        <div id="listB" class="data-list"></div>
+        <div class="stats-area">
+            <div class="stats-row">
+                <button onclick="calcStat('B', 'mean', '平均数')">求平均</button>
+                <button onclick="calcStat('B', 'range', '极差')">求极差</button>
+            </div>
+            <div class="stats-row">
+                <button onclick="calcStat('B', 'variance', '方差')">求方差</button>
+                <button onclick="calcStat('B', 'ss', '离差平方和')">求离差平方和</button>
+            </div>
+            <div class="result-box" id="resB"></div>
+        </div>
+    </div>
+</div>
+<script>
+    let dataItems = []; let isSorted = false; let selectedCards = []; let globalMin = 0, globalMax = 0;
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+            const rawNumbers = json.flat().filter(v => typeof v === 'number');
+            dataItems = rawNumbers.map((val, index) => ({ id: index, val: val, group: 'pool' }));
+            if(dataItems.length > 0) { globalMin = Math.min(...rawNumbers); globalMax = Math.max(...rawNumbers); }
+            parent.postMessage({ type: 'import_data', module: '模型建立', detail: '导入了数据文件，共' + rawNumbers.length + '条数据' }, '*');
+            renderAll();
+        };
+        reader.readAsArrayBuffer(file);
+    });
+    function toggleSort() { isSorted = !isSorted; renderAll(); }
+    function moveItem(id, targetGroup) {
+        dataItems.find(d => d.id === id).group = targetGroup;
+        clearAllCalculations(); document.getElementById('visualization').style.display = 'none'; renderAll();
+    }
+    function renderAll() {
+        if(dataItems.length === 0) {
+            document.getElementById('listPool').innerHTML = '<p style="text-align:center; color:#90a4ae; margin-top:20px;">请先上传文件</p>'; return;
+        }
+        let poolItems = dataItems.filter(d => d.group === 'pool');
+        if (isSorted) poolItems.sort((a, b) => b.val - a.val); else poolItems.sort((a, b) => a.id - b.id);
+        const aItems = dataItems.filter(d => d.group === 'A'); const bItems = dataItems.filter(d => d.group === 'B');
+        document.getElementById('listPool').innerHTML = poolItems.map(d => `<div class="data-item"><b>${d.val}</b><div class="item-btns"><button class="btn-to-a" onclick="moveItem(${d.id}, 'A')">入A</button><button class="btn-to-b" onclick="moveItem(${d.id}, 'B')">入B</button></div></div>`).join('');
+        document.getElementById('listA').innerHTML = aItems.map(d => `<div class="data-item" style="border-left:4px solid var(--group-a);"><b>${d.val}</b><div class="item-btns"><button style="background:#eceff1;color:#546e7a;" onclick="moveItem(${d.id}, 'pool')">撤回</button></div></div>`).join('');
+        document.getElementById('listB').innerHTML = bItems.map(d => `<div class="data-item" style="border-left:4px solid var(--group-b);"><b>${d.val}</b><div class="item-btns"><button style="background:#eceff1;color:#546e7a;" onclick="moveItem(${d.id}, 'pool')">撤回</button></div></div>`).join('');
+    }
+    function calcStat(groupName, typeId, typeName) {
+        const arr = dataItems.filter(d => d.group === groupName).map(d => d.val);
+        if(arr.length === 0) { alert("该组无数据！"); return; }
+        let result = 0; const n = arr.length; const mean = arr.reduce((a,b)=>a+b,0) / n;
+        if(typeId === 'mean') result = mean;
+        if(typeId === 'range') result = Math.max(...arr) - Math.min(...arr);
+        if(typeId === 'ss') result = arr.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0);
+        if(typeId === 'variance') result = arr.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / n;
+        const cardId = `card_${groupName}_${typeId}`;
+        if(document.getElementById(cardId)) document.getElementById(cardId).remove(); 
+        const html = `<div id="${cardId}" class="stat-card" data-group="${groupName}" data-typeid="${typeId}" data-typename="${typeName}" data-val="${result}" onclick="toggleSelect(this)">${typeName}<br/><b>${result.toFixed(2)}</b></div>`;
+        document.getElementById(`res${groupName}`).insertAdjacentHTML('beforeend', html);
+    }
+    function toggleSelect(element) {
+        if (element.classList.contains('selected')) {
+            element.classList.remove('selected'); selectedCards = selectedCards.filter(el => el.id !== element.id);
+        } else {
+            if(selectedCards.length >= 2) selectedCards.shift().classList.remove('selected');
+            element.classList.add('selected'); selectedCards.push(element);
+        }
+        evaluateSum();
+    }
+    function evaluateSum() {
+        const board = document.getElementById('sumBoard');
+        if(selectedCards.length === 2) {
+            if(selectedCards[0].dataset.typeid === selectedCards[1].dataset.typeid) {
+                board.style.display = 'block';
+                board.innerHTML = `两组的 ${selectedCards[0].dataset.typename} 之和: <span class="sum-highlight">${(parseFloat(selectedCards[0].dataset.val) + parseFloat(selectedCards[1].dataset.val)).toFixed(2)}</span>`;
+            } else {
+                board.style.display = 'block'; board.innerHTML = `<span style="color:#ef5350;">请选择相同类型的指标进行相加（例如：A组离差平方和 + B组离差平方和）</span>`;
+            }
+        } else { board.style.display = 'none'; }
+    }
+    function clearAllCalculations() { document.getElementById('resA').innerHTML = ''; document.getElementById('resB').innerHTML = ''; selectedCards = []; document.getElementById('sumBoard').style.display = 'none'; }
+    function resetAll() { dataItems = []; document.getElementById('fileInput').value = ''; clearAllCalculations(); document.getElementById('visualization').style.display = 'none'; renderAll(); }
+    function confirmAndDraw() {
+        const aItems = dataItems.filter(d => d.group === 'A'); const bItems = dataItems.filter(d => d.group === 'B');
+        if(aItems.length === 0 && bItems.length === 0) { alert("请先将数据放入A组或B组！"); return; }
+        parent.postMessage({ type: 'confirm_group', module: '模型建立', detail: '确定分组：A组' + aItems.length + '条，B组' + bItems.length + '条' }, '*');
+        const line = document.getElementById('numLine'); document.getElementById('visualization').style.display = 'block'; line.innerHTML = ''; 
+        let range = globalMax - globalMin || 1; 
+        line.innerHTML += `<div class="nl-label" style="left:0%;">${globalMin}</div><div class="nl-label" style="left:100%;">${globalMax}</div>`;
+        aItems.forEach(d => { line.innerHTML += `<div class="nl-dot dot-a" style="left:${((d.val - globalMin) / range) * 100}%;" title="A组: ${d.val}"></div>`; });
+        bItems.forEach(d => { line.innerHTML += `<div class="nl-dot dot-b" style="left:${((d.val - globalMin) / range) * 100}%;" title="B组: ${d.val}"></div>`; });
+    }
+</script>
+</body>
+</html>
+    </textarea>
+
+    <textarea id="src-app3" style="display:none;">
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>地理数据科学实验台 - 交互加强版</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <script src="https://fastly.jsdelivr.net/npm/echarts/map/js/china.js"></script>
+    <style>
+        :root { --bg-color: #f4f8fb; --primary-blue: #29b6f6; --primary-green: #66bb6a; --accent-orange: #ffa726; --text-dark: #37474f; }
+        * { box-sizing: border-box; font-family: 'PingFang SC', sans-serif; }
+        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: var(--bg-color); }
+        .app-container { width: 95vw; aspect-ratio: 16 / 9; background: white; border-radius: 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.06); display: flex; flex-direction: column; overflow: hidden; position: relative; }
+        header { height: 70px; background: linear-gradient(135deg, #4fc3f7, #0288d1); color: white; display: flex; align-items: center; padding: 0 30px; justify-content: space-between; }
+        .header-btns { display: flex; gap: 12px; }
+        .btn { padding: 8px 20px; border-radius: 50px; border: none; cursor: pointer; font-weight: bold; transition: 0.3s; font-size: 13px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .btn-upload { background: #ffa726; color: white; }
+        .btn-map { background: #ab47bc; color: white; display: none; }
+        header .btn:last-child { background: #90a4ae !important; color: white !important; } 
+        main { display: flex; flex: 1; padding: 15px; gap: 15px; background: #fafafa; overflow: hidden; }
+        .data-card { flex: 0 0 22%; background: white; border-radius: 18px; display: flex; flex-direction: column; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #eceff1;}
+        .card-header { padding: 12px; text-align: center; background: #e1f5fe; color: #0288d1; font-weight: bold; font-size: 14px; border-radius: 18px 18px 0 0; }
+        #data-list { flex: 1; overflow-y: auto; padding: 10px; margin: 0; list-style: none; }
+        .data-item { padding: 10px 15px; margin-bottom: 6px; border-radius: 12px; background: #f5f7f8; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s; }
+        .data-item:hover { background: #eceff1; }
+        .data-item .num-tag { font-size: 11px; color: #90a4ae; font-weight: bold; width: 20px; }
+        .data-item .prov { flex: 1; margin-left: 10px; font-weight: 500; color: #455a64;}
+        .item-a { background-color: #e1f5fe !important; color: #0288d1; }
+        .item-b { background-color: #e8f5e9 !important; color: #2e7d32; }
+        .item-a .num-tag { color: var(--primary-blue); }
+        .item-b .num-tag { color: var(--primary-green); }
+        .divider { height: 10px; background: var(--accent-orange); border-radius: 10px; margin: 8px 0; position: relative; box-shadow: 0 0 10px rgba(255,167,38,0.4); }
+        .divider::after { content: "✂️ 隔板"; position: absolute; right: 10px; top: -12px; font-size: 10px; background: var(--accent-orange); color: white; padding: 1px 6px; border-radius: 4px; }
+        .report-card { flex: 1; background: white; border-radius: 18px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #eceff1; }
+        .report-toolbar { padding: 12px 20px; background: #ffffff; border-bottom: 1px solid #eceff1; display: flex; justify-content: space-between; align-items: center; }
+        .switch-box { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: bold; color: #78909c; }
+        .toggle { position: relative; width: 44px; height: 24px; background: #cfd8dc; border-radius: 24px; cursor: pointer; transition: 0.3s; }
+        .toggle::before { content: ""; position: absolute; width: 18px; height: 18px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        .toggle.active { background: #64b5f6; }
+        .toggle.active::before { left: 23px; }
+        .table-container { flex: 1; overflow-y: auto; padding: 15px; }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; table-layout: fixed; }
+        th { font-size: 12px; color: #90a4ae; padding-bottom: 10px; border-bottom: 2px solid #eceff1; }
+        td { padding: 12px 5px; text-align: center; font-size: 13px; background: #fafafa; border-radius: 8px; color: #455a64;}
+        .ratio-col { display: none; font-weight: bold; color: #8e24aa; }
+        .show-ratio .ratio-col { display: table-cell; }
+        .optimal-row td { background: #fff8e1 !important; border-top: 2px solid #ffca28; border-bottom: 2px solid #ffca28; font-weight: bold; color: #f57f17;}
+        .btn-opt { background: white; border: 1px solid #cfd8dc; color: #546e7a; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight:bold; transition: 0.2s;}
+        .btn-opt:hover { background: #ffecb3; border-color: #ffca28; color: #f57f17;}
+        #map-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 100; display: none; flex-direction: column; backdrop-filter: blur(5px);}
+        .close-map { position: absolute; top: 20px; right: 30px; z-index: 101; background: #455a64; color: white; padding: 10px 30px; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.2); transition: 0.2s;}
+        .close-map:hover { background: #263238; transform: scale(1.05);}
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <header>
+        <h1>🌍 地理区域分类差异实验台</h1>
+        <div class="header-btns">
+            <input type="file" id="upload" accept=".xlsx, .xls" style="display:none">
+            <button class="btn btn-upload" onclick="document.getElementById('upload').click()">📂 导入Excel数据</button>
+            <button class="btn btn-map" id="map-entry" onclick="openMap()">🗺️ 查看地图分布</button>
+            <button class="btn" onclick="location.reload()">🧹 重置</button>
+        </div>
+    </header>
+    <main>
+        <div class="data-card">
+            <div class="card-header">数据排序列表 (点击行放置隔板)</div>
+            <ul id="data-list"><div style="padding:50px; text-align:center; color:#b0bec5; font-size:12px;">等待导入数据...</div></ul>
+        </div>
+        <div class="report-card" id="report-view">
+            <div class="report-toolbar">
+                <div style="font-size:13px; font-weight:bold; color:#455a64;">全样本总SST: <span id="sst-display" style="color:var(--primary-blue)">0</span></div>
+                <div class="switch-box">
+                    <span>显示比率 (SSW/SST)</span>
+                    <div class="toggle" id="ratio-toggle" onclick="toggleRatio()"></div>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="10%">分割位</th><th width="24%">组A (中位/平均/SSD)</th><th width="24%">组B (中位/平均/SSD)</th>
+                            <th width="14%">两组SSD和(SSW)</th><th width="14%" class="ratio-col">比率值</th><th width="14%">标记最优</th>
+                        </tr>
+                    </thead>
+                    <tbody id="result-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <div id="map-overlay">
+        <div class="close-map" onclick="document.getElementById('map-overlay').style.display='none'">退出地图</div>
+        <div id="map-canvas" style="width:100%; height:100%;"></div>
+    </div>
+</div>
+<script>
+    let geoItems = []; let sstValue = 0; let splitIdx = -1; let markedConfig = null;
+    document.getElementById('upload').addEventListener('change', function(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const raw = XLSX.utils.sheet_to_json(XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).Sheets[XLSX.read(new Uint8Array(e.target.result), {type: 'array'}).SheetNames[0]], {header: 1});
+            let temp = [];
+            raw.forEach(row => {
+                let name = row[0] ? row[0].toString().trim() : ""; let val = parseFloat(row[1]);
+                if(name && !isNaN(val)) temp.push({ name: name.replace(/省|市|自治区|特别行政区|维吾尔|回族|壮族/g, ""), value: val });
+            });
+            geoItems = temp.sort((a, b) => b.value - a.value);
+            sstValue = calcSSD(geoItems.map(d => d.value));
+            document.getElementById('sst-display').innerText = sstValue.toFixed(2);
+            splitIdx = -1; renderDataList(); document.getElementById('result-body').innerHTML = ''; document.getElementById('map-entry').style.display = 'none';
+        };
+        reader.readAsArrayBuffer(file);
+    });
+    function renderDataList() {
+        const list = document.getElementById('data-list'); list.innerHTML = '';
+        geoItems.forEach((item, i) => {
+            const li = document.createElement('li'); li.className = 'data-item';
+            if (splitIdx !== -1) li.classList.add(i <= splitIdx ? 'item-a' : 'item-b');
+            li.innerHTML = `<span class="num-tag">${i+1}</span><span class="prov">${item.name}</span><b>${item.value}</b>`;
+            li.onclick = () => performSplit(i); list.appendChild(li);
+            if (i === splitIdx) { const div = document.createElement('div'); div.className = 'divider'; list.appendChild(div); }
+        });
+    }
+    function performSplit(idx) {
+        splitIdx = idx; renderDataList();
+        const groupA = geoItems.slice(0, idx + 1); const groupB = geoItems.slice(idx + 1);
+        const sA = getStats(groupA.map(d => d.value)); const sB = getStats(groupB.map(d => d.value));
+        const sumSSW = sA.ssdVal + sB.ssdVal; const ratio = (sumSSW / sstValue).toFixed(4);
+        parent.postMessage({ type: 'split_data', module: '模型求解', detail: '在位置#' + (idx+1) + '分割，SSW=' + sumSSW.toFixed(2) + '，比率=' + ratio }, '*');
+        const tbody = document.getElementById('result-body'); const row = document.createElement('tr'); row.dataset.idx = idx;
+        row.innerHTML = `<td># ${idx + 1}</td><td>${sA.med}/${sA.avg}/${sA.ssd}</td><td>${sB.med}/${sB.avg}/${sB.ssd}</td><td style="color:#ef6c00; font-weight:bold">${sumSSW.toFixed(2)}</td><td class="ratio-col">${ratio}</td><td><button class="btn-opt" onclick="markOptimal(this)">🏆 选定</button></td>`;
+        tbody.insertBefore(row, tbody.firstChild);
+    }
+    function markOptimal(btn) {
+        document.querySelectorAll('tr').forEach(r => r.classList.remove('optimal-row'));
+        const row = btn.closest('tr'); row.classList.add('optimal-row');
+        const idx = parseInt(row.dataset.idx);
+        markedConfig = { aList: geoItems.slice(0, idx + 1).map(d => d.name), bList: geoItems.slice(idx + 1).map(d => d.name) };
+        parent.postMessage({ type: 'mark_optimal', module: '模型求解', detail: '选定最优分割位#' + (idx+1) + '，A组:' + markedConfig.aList.join('、') + '，B组:' + markedConfig.bList.join('、') }, '*');
+        document.getElementById('map-entry').style.display = 'block';
+    }
+    function toggleRatio() { document.getElementById('ratio-toggle').classList.toggle('active'); document.getElementById('report-view').classList.toggle('show-ratio'); }
+    function openMap() {
+        document.getElementById('map-overlay').style.display = 'flex';
+        const chart = echarts.init(document.getElementById('map-canvas'));
+        const mapData = geoItems.map(d => {
+            let cat = -1; if(markedConfig.aList.includes(d.name)) cat = 1; else if(markedConfig.bList.includes(d.name)) cat = 0;
+            return { name: d.name, value: cat, realValue: d.value };
+        });
+        chart.setOption({
+            title: { text: '地理分布差异图 (蓝色:A组, 绿色:B组)', left: 'center', top: 20 },
+            tooltip: { trigger: 'item', formatter: p => `${p.name}<br/>原始值: ${p.data ? p.data.realValue : '无'}` },
+            visualMap: { type: 'piecewise', pieces: [{value: 1, label: 'A组', color: '#29b6f6'}, {value: 0, label: 'B组', color: '#66bb6a'}], left: '5%', bottom: '10%' },
+            series: [{ type: 'map', map: 'china', data: mapData, label: { show: true, fontSize: 10 } }]
+        });
+        window.onresize = chart.resize;
+    }
+    function getStats(arr) {
+        if(arr.length === 0) return {med:0, avg:0, ssd:0, ssdVal:0};
+        const avg = arr.reduce((a,b)=>a+b,0)/arr.length;
+        const med = arr.length%2===0 ? (arr[arr.length/2-1]+arr[arr.length/2])/2 : arr[Math.floor(arr.length/2)];
+        const ssdVal = arr.reduce((a,b)=>a+Math.pow(b-avg,2), 0);
+        return { med: med.toFixed(1), avg: avg.toFixed(1), ssd: ssdVal.toFixed(1), ssdVal: ssdVal };
+    }
+    function calcSSD(arr) { const avg = arr.reduce((a,b)=>a+b,0)/arr.length; return arr.reduce((a,b)=>a+Math.pow(b-avg,2), 0); }
+</script>
+</body>
+</html>
+    </textarea>
+
+    <div id="landing" class="page active">
+        <h1>用数学之尺，量地理之线</h1>
+        <h3>——“数据的分组”探秘</h3>
+        <button class="start-btn" onclick="navTo('menu')">开 始 探 索</button>
+    </div>
+
+    <div id="menu" class="page">
+        <div class="menu-title">选择探秘模块</div>
+        <div class="cards-container">
+            <div class="menu-card c1" onclick="openApp(1, '数据分析（散点图绘制）')">
+                <div class="card-icon">📊</div>
+                <div class="card-title">数据分析</div>
+                <div class="card-subtitle">(散点图绘制)</div>
+            </div>
+            <div class="menu-card c2" onclick="openApp(2, '模型建立（确立分组方法）')">
+                <div class="card-icon">🧮</div>
+                <div class="card-title">模型建立</div>
+                <div class="card-subtitle">(确立分组方法)</div>
+            </div>
+            <div class="menu-card c3" onclick="openApp(3, '模型求解（地理分界线生成）')">
+                <div class="card-icon">🌍</div>
+                <div class="card-title">模型求解</div>
+                <div class="card-subtitle">(地理分界线生成)</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewer" class="page">
+        <div class="viewer-header">
+            <h2 id="viewer-title">实验模块</h2>
+            <button class="back-btn" onclick="navTo('menu')">↩ 返回模块列表</button>
+        </div>
+        <iframe id="app-iframe"></iframe>
+    </div>
+
+    <script>
+        // 页面路由导航
+        function navTo(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            
+            // 稍作延时，触发透明度动画过渡
+            setTimeout(() => {
+                document.getElementById(pageId).classList.add('active');
+                // 当退回到菜单时，清空 iframe 释放内存
+                if (pageId === 'menu') {
+                    document.getElementById('app-iframe').srcdoc = ''; 
+                }
+            }, 50);
+        }
+
+        // 打开指定的应用模块
+        function openApp(appId, title) {
+            document.getElementById('viewer-title').innerText = title;
+            // 获取对应 textarea 内存储的原始 HTML 字符串
+            const sourceCode = document.getElementById('src-app' + appId).value;
+            // 通过 srcdoc 无缝注入 iframe
+            document.getElementById('app-iframe').srcdoc = sourceCode;
+            navTo('viewer');
+        }
+    </script>
+</body>
+</html>

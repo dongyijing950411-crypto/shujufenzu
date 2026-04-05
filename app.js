@@ -104,16 +104,24 @@ function enterAsTeacher() {
 }
 
 function confirmStudentLogin() {
-    const name = document.getElementById('student-name-input').value.trim();
-    if (!name) {
-        document.getElementById('student-name-input').style.borderColor = 'var(--danger)';
-        return;
+    try {
+        const name = document.getElementById('student-name-input').value.trim();
+        if (!name) {
+            document.getElementById('student-name-input').style.borderColor = 'var(--danger)';
+            return;
+        }
+        currentStudent = name;
+        closeModal('student-login-modal');
+        document.getElementById('role-selector').classList.add('hidden');
+        document.getElementById('student-view').classList.remove('hidden');
+        window.addEventListener('message', handleIframeMessage);
+        console.log('Student login successful:', name);
+        console.log('Student view element:', document.getElementById('student-view'));
+        console.log('Iframe src:', document.getElementById('student-iframe').src);
+    } catch (error) {
+        console.error('Error in student login:', error);
+        alert('登录时出现错误，请刷新页面重试');
     }
-    currentStudent = name;
-    closeModal('student-login-modal');
-    document.getElementById('role-selector').classList.add('hidden');
-    document.getElementById('student-view').classList.remove('hidden');
-    window.addEventListener('message', handleIframeMessage);
 }
 
 function confirmTeacherLogin() {
