@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据的分组 - 互动公开课</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="top-nav">
+            <div class="nav-brand">📊 数据的分组 - 互动课堂</div>
+        </nav>
+
+        <div id="role-selector" class="role-selector">
+            <div class="role-card" onclick="enterAsStudent()">
+                <div class="role-icon">🎓</div>
+                <h2>我是学生</h2>
+                <p>进入数据分组探究活动</p>
+            </div>
+            <div class="role-card" onclick="enterAsTeacher()">
+                <div class="role-icon">👨‍🏫</div>
+                <h2>我是老师</h2>
+                <p>查看学情分析</p>
+            </div>
+        </div>
+
+        <div id="student-view" class="view hidden">
+            <div class="student-layout">
+                <div class="main-area">
+                    <iframe id="student-iframe" class="student-iframe" src="中国地理气候划分2.html"></iframe>
+                </div>
+
+                <div class="assistant-panel" id="assistant-panel">
+                    <div class="assistant-header">
+                        <span>🤖 AI助教</span>
+                        <div class="assistant-header-right">
+                            <span class="assistant-status">在线</span>
+                            <button class="assistant-close-btn" onclick="toggleAssistant()">✕</button>
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="message assistant-msg">
+                            <div class="msg-avatar">🤖</div>
+                            <div class="msg-content">
+                                <p>你好呀！我是你的AI助教小助手~</p>
+                                <p>今天的任务是：用数学之尺，量地理之线——探索数据的分组方法。</p>
+                                <p>你可以依次进入三个模块进行探究：</p>
+                                <p>1️⃣ <strong>数据分析</strong>：导入数据，观察散点分布</p>
+                                <p>2️⃣ <strong>模型建立</strong>：尝试不同的分组方法</p>
+                                <p>3️⃣ <strong>模型求解</strong>：找到最优分组，生成地理分界线</p>
+                                <p>遇到任何问题都可以问我哦！😊</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="输入你的问题..." onkeypress="handleChatKeypress(event)">
+                        <button class="btn-send" onclick="sendMessage()">发送</button>
+                    </div>
+                </div>
+
+                <button class="assistant-fab" id="assistant-fab" onclick="toggleAssistant()">
+                    <span class="fab-icon">🤖</span>
+                    <span class="fab-badge" id="fab-badge" style="display:none">0</span>
+                </button>
+                <div class="assistant-overlay" id="assistant-overlay" onclick="toggleAssistant()"></div>
+            </div>
+        </div>
+
+        <div id="teacher-view" class="view hidden">
+            <div class="teacher-layout">
+                <div class="teacher-header">
+                    <h2>📊 学情分析面板</h2>
+                    <div class="teacher-actions">
+                        <button class="btn btn-secondary" onclick="openApiKeySettings()">🔑 AI设置</button>
+                        <button class="btn btn-secondary" onclick="exportData()">📥 导出数据</button>
+                        <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空数据</button>
+                    </div>
+                </div>
+
+                <div class="stats-overview">
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-total">0</div>
+                        <div class="stat-label">提问总数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-students">0</div>
+                        <div class="stat-label">提问学生数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-trials">0</div>
+                        <div class="stat-label">分组尝试次数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="stat-topics">0</div>
+                        <div class="stat-label">涉及知识点</div>
+                    </div>
+                </div>
+
+                <div class="teacher-content">
+                    <div class="teacher-section">
+                        <h3>🔥 高频问题 TOP 10</h3>
+                        <div class="topic-list" id="topic-list"></div>
+                    </div>
+
+                    <div class="teacher-section">
+                        <h3>📊 学生统计量选择分布</h3>
+                        <div class="metric-distribution" id="metric-distribution"></div>
+                    </div>
+
+                    <div class="teacher-section">
+                        <h3>📝 全部提问记录</h3>
+                        <div class="filter-bar">
+                            <input type="text" id="filter-student" placeholder="按学生姓名筛选..." oninput="filterRecords()">
+                            <select id="filter-topic" onchange="filterRecords()">
+                                <option value="">全部知识点</option>
+                            </select>
+                        </div>
+                        <div class="records-table-wrapper">
+                            <table class="records-table" id="records-table">
+                                <thead>
+                                    <tr>
+                                        <th>时间</th>
+                                        <th>学生</th>
+                                        <th>问题内容</th>
+                                        <th>知识点分类</th>
+                                        <th>助教回复</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="records-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="teacher-section">
+                        <h3>📈 学生完成情况</h3>
+                        <div class="completion-list" id="completion-list"></div>
+                    </div>
+
+                    <div class="teacher-section">
+                        <h3>🔧 学生操作记录</h3>
+                        <div class="operations-list" id="operations-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="student-login-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🎓 学生登录</h2>
+            <p>请输入你的姓名，方便老师了解你的学习情况</p>
+            <input type="text" id="student-name-input" placeholder="请输入你的姓名">
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="confirmStudentLogin()">进入课堂</button>
+                <button class="btn btn-secondary" onclick="closeModal('student-login-modal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="teacher-login-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>👨‍🏫 教师登录</h2>
+            <p>请输入教师密码</p>
+            <input type="password" id="teacher-pwd-input" placeholder="请输入密码">
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="confirmTeacherLogin()">进入</button>
+                <button class="btn btn-secondary" onclick="closeModal('teacher-login-modal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="apikey-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>🔑 AI助教设置</h2>
+            <p>配置 DeepSeek API Key 以启用智能对话功能</p>
+            <div class="apikey-status" id="apikey-status"></div>
+            <input type="password" id="apikey-input" placeholder="请输入 DeepSeek API Key">
+            <p class="apikey-hint">获取方式：访问 <a href="https://platform.deepseek.com/api_keys" target="_blank">platform.deepseek.com</a> 注册并创建 API Key</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="saveApiKey()">保存</button>
+                <button class="btn btn-danger" onclick="clearApiKey()">清除Key</button>
+                <button class="btn btn-secondary" onclick="closeModal('apikey-modal')">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
